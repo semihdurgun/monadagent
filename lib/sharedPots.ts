@@ -67,7 +67,7 @@ export async function createSharedPot(config: SharedPotConfig): Promise<{
         implementation: Implementation.MultiSig,
         deployParams: [
             config.members, // owners
-            config.threshold, // threshold
+            BigInt(config.threshold), // threshold
         ],
         deploySalt: `0x${config.id}`, // Use pot ID as salt for deterministic address
     });
