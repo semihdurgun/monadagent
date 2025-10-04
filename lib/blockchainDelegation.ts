@@ -13,6 +13,7 @@ import {
   type WalletClient
 } from 'viem';
 import { monadTestnet } from '@/lib/chain';
+import { handleTransactionError } from './errorHandling';
 
 // Contract ABI (Application Binary Interface)
 const DELEGATION_MANAGER_ABI = [
@@ -312,9 +313,10 @@ export async function createBlockchainDelegation(config: BlockchainDelegationCon
 
   } catch (error) {
     console.error('Blockchain delegation creation error:', error);
+    const errorResult = handleTransactionError(error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorResult.error
     };
   }
 }
@@ -395,9 +397,10 @@ export async function useBlockchainDelegation(
 
   } catch (error) {
     console.error('Blockchain delegation usage error:', error);
+    const errorResult = handleTransactionError(error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorResult.error
     };
   }
 }
@@ -534,9 +537,10 @@ export async function revokeBlockchainDelegation(delegationId: string): Promise<
 
   } catch (error) {
     console.error('Revoke blockchain delegation error:', error);
+    const errorResult = handleTransactionError(error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorResult.error
     };
   }
 }
@@ -677,9 +681,10 @@ export async function createSmartAccountDelegation(config: BlockchainDelegationC
 
   } catch (error) {
     console.error('Delegation creation error:', error);
+    const errorResult = handleTransactionError(error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: errorResult.error
     };
   }
 }

@@ -1,4 +1,5 @@
 import { useAppStore } from './store';
+import { parseWalletError, shouldShowErrorInChat } from './errorHandling';
 import { 
     createNativeSubscription,
     createNativeOneTimePayment,
@@ -151,7 +152,7 @@ export class AICommandProcessor {
             return {
                 type: 'subscription',
                 action: 'error',
-                response: `❌ Abonelik oluşturulurken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
+                response: `❌ Abonelik oluşturulurken hata oluştu: ${parseWalletError(error)}`
             };
         }
     }
@@ -182,7 +183,7 @@ export class AICommandProcessor {
                 return {
                     type: 'subscription',
                     action: 'error',
-                    response: `❌ Abonelik iptal edilirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
+                    response: `❌ Abonelik iptal edilirken hata oluştu: ${parseWalletError(error)}`
                 };
             }
         }
@@ -254,7 +255,7 @@ export class AICommandProcessor {
             return {
                 type: 'payment_card',
                 action: 'error',
-                response: `❌ Ödeme kartı oluşturulurken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
+                response: `❌ Ödeme kartı oluşturulurken hata oluştu: ${parseWalletError(error)}`
             };
         }
     }
@@ -297,7 +298,7 @@ export class AICommandProcessor {
             return {
                 type: 'shared_pot',
                 action: 'error',
-                response: `❌ Ortak kasa oluşturulurken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
+                response: `❌ Ortak kasa oluşturulurken hata oluştu: ${parseWalletError(error)}`
             };
         }
     }
@@ -330,7 +331,7 @@ export class AICommandProcessor {
             return {
                 type: 'shared_pot',
                 action: 'error',
-                response: `❌ Para eklenirken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
+                response: `❌ Para eklenirken hata oluştu: ${parseWalletError(error)}`
             };
         }
     }
@@ -378,7 +379,7 @@ export class AICommandProcessor {
             return {
                 type: 'digital_will',
                 action: 'error',
-                response: `❌ Dijital vasiyet oluşturulurken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
+                response: `❌ Dijital vasiyet oluşturulurken hata oluştu: ${parseWalletError(error)}`
             };
         }
     }
@@ -428,7 +429,7 @@ export class AICommandProcessor {
             return {
                 type: 'scheduled_payment',
                 action: 'error',
-                response: `❌ Otomatik ödeme oluşturulurken hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`
+                response: `❌ Otomatik ödeme oluşturulurken hata oluştu: ${parseWalletError(error)}`
             };
         }
     }
@@ -563,7 +564,7 @@ export class AICommandProcessor {
             return {
                 type: 'general',
                 action: 'error',
-                response: `❌ Sanal kart oluşturulamadı: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`,
+                response: `❌ Sanal kart oluşturulamadı: ${parseWalletError(error)}`,
             };
         }
     }

@@ -1,5 +1,6 @@
 import { parseUnits } from 'viem';
 import { useAppStore } from './store';
+import { handleTransactionError } from './errorHandling';
 
 declare global {
   interface Window {
@@ -83,9 +84,10 @@ export async function createVirtualCard(config: VirtualCardConfig): Promise<{
 
   } catch (error) {
     console.error('Virtual card creation error:', error);
+    const errorResult = handleTransactionError(error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Bilinmeyen hata',
+      error: errorResult.error,
     };
   }
 }
@@ -153,9 +155,10 @@ export async function useVirtualCard(cardId: string, useAmount: string): Promise
 
   } catch (error) {
     console.error('Virtual card usage error:', error);
+    const errorResult = handleTransactionError(error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Bilinmeyen hata',
+      error: errorResult.error,
     };
   }
 }

@@ -1,4 +1,5 @@
 // VM Hosting Service - Mock VM hosting data generation and purchase simulation
+import { handleTransactionError } from './errorHandling';
 
 export interface VMCredentials {
   username: string;
@@ -72,9 +73,10 @@ export async function purchaseVM(): Promise<VMPurchaseResult> {
     };
   } catch (error) {
     console.error('❌ VM Hosting Purchase Error:', error);
+    const errorResult = handleTransactionError(error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Bilinmeyen hata'
+      error: errorResult.error
     };
   }
 }

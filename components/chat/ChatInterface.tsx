@@ -13,6 +13,7 @@ import { useWallet } from '@/lib/useWallet';
 import { sendNativeMON, parseTransferMessage, isValidAddress } from '@/lib/nativeTransfer';
 import { createBlockchainDelegation } from '@/lib/blockchainDelegation';
 import { purchaseVM, VM_MERCHANT_ADDRESS, VM_SERVICE_INFO } from '@/lib/vpnService';
+import { shouldShowErrorInChat, parseWalletError } from '@/lib/errorHandling';
 
 interface Message {
   id: string;
@@ -329,16 +330,19 @@ export function ChatInterface() {
           }
         }
     } catch (error) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: `❌ Bir hata oluştu: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`,
-        role: 'assistant',
-        timestamp: new Date(),
-        actions: null,
-        address: null,
-      };
+      // Only show error in chat if it's not a user rejection
+      if (shouldShowErrorInChat(error)) {
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: `❌ Bir hata oluştu: ${parseWalletError(error)}`,
+          role: 'assistant',
+          timestamp: new Date(),
+          actions: null,
+          address: null,
+        };
 
-      setMessages(prev => [...prev, errorMessage]);
+        setMessages(prev => [...prev, errorMessage]);
+      }
     } finally {
       setIsLoading(false);
       // Focus back to input after response
@@ -455,13 +459,16 @@ export function ChatInterface() {
       }
 
     } catch (error) {
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        content: `❌ Transfer hatası: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`,
-        role: 'assistant',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      // Only show error in chat if it's not a user rejection
+      if (shouldShowErrorInChat(error)) {
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          content: `❌ Transfer hatası: ${parseWalletError(error)}`,
+          role: 'assistant',
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
     } finally {
       setIsTransferring(false);
     }
@@ -585,18 +592,21 @@ export function ChatInterface() {
       }
 
     } catch (error) {
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        content: `❌ Delegasyon hatası: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`,
-        role: 'assistant',
-        timestamp: new Date(),
-        actions: null,
-        address: null,
-        amount: null,
-        duration: null,
-        recipient: null,
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      // Only show error in chat if it's not a user rejection
+      if (shouldShowErrorInChat(error)) {
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          content: `❌ Delegasyon hatası: ${parseWalletError(error)}`,
+          role: 'assistant',
+          timestamp: new Date(),
+          actions: null,
+          address: null,
+          amount: null,
+          duration: null,
+          recipient: null,
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
     } finally {
       setIsTransferring(false);
     }
@@ -701,19 +711,22 @@ export function ChatInterface() {
       }
 
     } catch (error) {
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        content: `❌ VM hosting satın alma hatası: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`,
-        role: 'assistant',
-        timestamp: new Date(),
-        actions: null,
-        address: null,
-        amount: null,
-        duration: null,
-        recipient: null,
-        vmAddress: null,
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      // Only show error in chat if it's not a user rejection
+      if (shouldShowErrorInChat(error)) {
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          content: `❌ VM hosting satın alma hatası: ${parseWalletError(error)}`,
+          role: 'assistant',
+          timestamp: new Date(),
+          actions: null,
+          address: null,
+          amount: null,
+          duration: null,
+          recipient: null,
+          vmAddress: null,
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
     } finally {
       setIsTransferring(false);
     }

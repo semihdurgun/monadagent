@@ -1,4 +1,5 @@
 import { parseUnits } from 'viem';
+import { handleTransactionError } from './errorHandling';
 
 declare global {
   interface Window {
@@ -53,9 +54,10 @@ export async function sendNativeMON(params: TransferParams): Promise<{
 
   } catch (error) {
     console.error('MON transfer error:', error);
+    const errorResult = handleTransactionError(error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Bilinmeyen hata',
+      error: errorResult.error,
     };
   }
 }

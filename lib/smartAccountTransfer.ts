@@ -1,5 +1,6 @@
 import { parseUnits } from 'viem';
 import { useAppStore } from './store';
+import { handleTransactionError } from './errorHandling';
 
 declare global {
   interface Window {
@@ -60,9 +61,10 @@ export async function sendNativeMONFromSA(params: SmartAccountTransferParams): P
 
   } catch (error) {
     console.error('Smart Account MON transfer error:', error);
+    const errorResult = handleTransactionError(error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Bilinmeyen hata',
+      error: errorResult.error,
     };
   }
 }
