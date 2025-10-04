@@ -159,7 +159,9 @@ type AppState = {
     addScheduledPayment(scheduledPayment: ScheduledPaymentData): void;
     updateScheduledPayment(id: string, updates: Partial<ScheduledPaymentData>): void;
     removeScheduledPayment(id: string): void;
-
+    addVirtualCard(virtualCard: VirtualCardData): void;
+    updateVirtualCard(id: string, updates: Partial<VirtualCardData>): void;
+    removeVirtualCard(id: string): void;
 
     reset(): void;
 };

@@ -61,15 +61,30 @@ export async function createSharedPot(config: SharedPotConfig): Promise<{
         throw new Error('Threshold geçerli değil');
     }
 
+    // Create wallet client
+    const eth = (window as any).ethereum;
+    if (!eth) throw new Error('MetaMask bulunamadı');
+    
+    const [account] = await eth.request({
+        method: 'eth_requestAccounts',
+    });
+
+    const walletClient = createWalletClient({
+        chain: monadTestnet,
+        transport: custom(eth),
+        account: account as `0x${string}`,
+    });
+
     // Create multisig smart account
     const smartAccount = await toMetaMaskSmartAccount({
         client: publicClient,
         implementation: Implementation.MultiSig,
         deployParams: [
             config.members, // owners
-            BigInt(config.threshold), // threshold
+            BigInt(config.threshold), // convert threshold to bigint
         ],
-        deploySalt: `0x${config.id}`, // Use pot ID as salt for deterministic address
+        deploySalt: `0x${BigInt(config.id).toString(16)}`, // convert id to bigint and format as hex
+        signer: { walletClient } as any,
     });
 
     const sharedPot: SharedPot = {
@@ -139,83 +154,6 @@ export async function addFundsToSharedPot(
         });
         return txHash as `0x${string}`;
     }
-}
-
-/**
- * Propose a transaction from shared pot
- */
-export async function proposeSharedPotTransaction(
-    potAddress: `0x${string}`,
-    to: `0x${string}`,
-    amount: string,
-    description: string,
-    token?: `0x${string}`
-): Promise<{
-    transactionId: string;
-    signature: `0x${string}`;
-}> {
-    if (!window.ethereum) throw new Error('MetaMask bulunamadı');
-
-    const [from] = await window.ethereum.request({
-        method: 'eth_requestAccounts',
-    });
-
-    // Create wallet client for signing
-    const walletClient = createWalletClient({
-        chain: monadTestnet,
-        transport: custom(window.ethereum),
-        account: from,
-    });
-
-    const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const amountBigInt = token ? parseUnits(amount, 6) : parseUnits(amount, 18);
-
-    // Create transaction data
-    const transactionData = {
-        to,
-        amount: amountBigInt,
-        token,
-        description,
-        timestamp: Math.floor(Date.now() / 1000),
-    };
-
-    // Sign the transaction proposal
-    const signature = await walletClient.signMessage({
-        message: `Shared Pot Transaction: ${JSON.stringify(transactionData)}`,
-    });
-
-    return {
-        transactionId,
-        signature: signature as `0x${string}`,
-    };
-}
-
-/**
- * Approve a proposed transaction
- */
-export async function approveSharedPotTransaction(
-    potAddress: `0x${string}`,
-    transactionId: string,
-    transactionData: any
-): Promise<`0x${string}`> {
-    if (!window.ethereum) throw new Error('MetaMask bulunamadı');
-
-    const [from] = await window.ethereum.request({
-        method: 'eth_requestAccounts',
-    });
-
-    const walletClient = createWalletClient({
-        chain: monadTestnet,
-        transport: custom(window.ethereum),
-        account: from,
-    });
-
-    // Sign the approval
-    const signature = await walletClient.signMessage({
-        message: `Approve Transaction ${transactionId}: ${JSON.stringify(transactionData)}`,
-    });
-
-    return signature as `0x${string}`;
 }
 
 /**

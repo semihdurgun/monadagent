@@ -8,6 +8,84 @@ import { encodeFunctionData, parseUnits, formatUnits } from 'viem';
 import { erc20Abi } from './erc20abi';
 import { createHybridSmartAccount } from './smartAccount';
 
+// Import the ABI from blockchainDelegation.ts
+const DELEGATION_MANAGER_ABI = [
+    // Events
+    {
+        type: 'event',
+        name: 'DelegationCreated',
+        inputs: [
+            { name: 'delegationId', type: 'bytes32', indexed: true },
+            { name: 'from', type: 'address', indexed: true },
+            { name: 'to', type: 'address', indexed: true },
+            { name: 'amount', type: 'uint256', indexed: false },
+            { name: 'expiresAt', type: 'uint256', indexed: false }
+        ]
+    },
+    {
+        type: 'event',
+        name: 'DelegationUsed',
+        inputs: [
+            { name: 'delegationId', type: 'bytes32', indexed: true },
+            { name: 'user', type: 'address', indexed: true },
+            { name: 'amount', type: 'uint256', indexed: false },
+            { name: 'recipient', type: 'address', indexed: false }
+        ]
+    },
+    {
+        type: 'event',
+        name: 'DelegationRevoked',
+        inputs: [
+            { name: 'delegationId', type: 'bytes32', indexed: true },
+            { name: 'from', type: 'address', indexed: true }
+        ]
+    },
+    // Functions
+    {
+        type: 'function',
+        name: 'createDelegation',
+        inputs: [
+            { name: 'to', type: 'address' },
+            { name: 'smartAccount', type: 'address' },
+            { name: 'amount', type: 'uint256' },
+            { name: 'expiresAt', type: 'uint256' },
+            { name: 'maxUses', type: 'uint256' },
+            { name: 'allowedActions', type: 'bytes32[]' }
+        ],
+        outputs: [{ name: 'delegationId', type: 'bytes32' }],
+        stateMutability: 'payable'
+    },
+    {
+        type: 'function',
+        name: 'useDelegation',
+        inputs: [
+            { name: 'delegationId', type: 'bytes32' },
+            { name: 'amount', type: 'uint256' },
+            { name: 'recipient', type: 'address' }
+        ],
+        outputs: [],
+        stateMutability: 'nonpayable'
+    },
+    {
+        type: 'function',
+        name: 'revokeDelegation',
+        inputs: [{ name: 'delegationId', type: 'bytes32' }],
+        outputs: [],
+        stateMutability: 'nonpayable'
+    },
+    {
+        type: 'function',
+        name: 'redeemDelegations',
+        inputs: [
+            { name: 'delegations', type: 'bytes[]' },
+            { name: 'modes', type: 'uint8[]' },
+            { name: 'executions', type: 'bytes[]' }
+        ],
+        outputs: [],
+        stateMutability: 'nonpayable'
+    }
+] as const;
+
 export interface SubscriptionConfig {
     id: string;
     name: string;
@@ -117,27 +195,36 @@ export async function createSubscriptionDelegation(config: SubscriptionConfig) {
  * Cancel/revoke a subscription delegation
  */
 export async function revokeSubscriptionDelegation(delegationId: string) {
-    const sa = await createHybridSmartAccount();
+    if (!window.ethereum) throw new Error('No wallet provider found');
     
-    // Create a revoke execution
-    const execution = createExecution({
-        target: (sa as any).environment.DelegationManager,
-        value: 0n,
-        callData: encodeFunctionData({
-            abi: DelegationManager.abi,
-            functionName: 'revokeDelegation',
-            args: [delegationId],
-        }),
+    const sa = await createHybridSmartAccount();
+    const dmAddress = (sa as any).environment.DelegationManager;
+    
+    // Encode the revoke function call
+    const callData = encodeFunctionData({
+        abi: DELEGATION_MANAGER_ABI,
+        functionName: 'revokeDelegation',
+        args: [delegationId as `0x${string}`],
     });
 
-    // Sign and send the revoke transaction
-    const txHash = await sa.execute({
-        target: (sa as any).environment.DelegationManager,
-        value: 0n,
-        callData: execution.callData,
+    // Get the user's account
+    const [from] = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+    });
+    
+    // Send the transaction directly through MetaMask
+    const txHash = await window.ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [
+            {
+                from,
+                to: dmAddress,
+                data: callData,
+            },
+        ],
     });
 
-    return txHash;
+    return txHash as `0x${string}`;
 }
 
 /**
